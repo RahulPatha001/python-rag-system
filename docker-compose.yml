@@ -1,0 +1,9 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrantRagDb
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+    volumes:
+      - ./Backend/qdrant_storage:/qdrant/storage
