@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 import os
 import datetime
 from inngest.experimental import ai
+from data_loader import load_and_chunk_pdf, embed_texts
+from vector_storage import QdrantStorage
+from models import RAGQueryResult, RAGUpsertResult, RAGSearchResult, RAGChunkSrc
 
 load_dotenv()
 app = FastAPI()

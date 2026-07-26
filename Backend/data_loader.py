@@ -10,7 +10,7 @@ client = OpenAI(api_key=os.getenv("API_KEY"))
 EMBED_MODEL = "text-embedding-3-large"
 EMBED_DIM = 3072
 
-spilitter = SentenceSplitter(chunk_size=1000, chunk_overlap=200)
+splitter = SentenceSplitter(chunk_size=1000, chunk_overlap=200)
 
 def load_and_chunk_pdf (file_path):
     pdf_reader = PDFReader()
@@ -18,7 +18,7 @@ def load_and_chunk_pdf (file_path):
     texts = [d.text for d in documents if getattr(d, 'text', None)]
     chunks = []
     for text in texts:
-        chunks.extend(spilitter.split_text(text))
+        chunks.extend(splitter.split_text(text))
     return chunks
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
