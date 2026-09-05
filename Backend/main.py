@@ -15,17 +15,18 @@ load_dotenv()
 app = FastAPI()
 
 inngest_client = inngest.Inngest(
-    app_id = "rag_app",
-    logger = logging.getLogger("uvicorn"),
-    is_production= False,
-    serializer=inngest.PydanticSerializer()
+    app_id="rag_app",
+    logger=logging.getLogger("uvicorn"),
+    is_production=False,
+    serializer=inngest.PydanticSerializer(),
 )
+
 
 @inngest_client.create_function(
-    fn_id="RAG_Ingest PDF",
-    trigger= inngest.TriggerEvent(event="rag/inngest_pdf")
+    fn_id="RAG_Ingest PDF", trigger=inngest.TriggerEvent(event="rag/inngest_pdf")
 )
 async def rag_inngest_pdf(ctx: inngest.Context):
-    return {"hello":"world"}
+    return {"hello": "world"}
 
-inngest.fast_api.serve(app, inngest_client,[rag_inngest_pdf])
+
+inngest.fast_api.serve(app, inngest_client, [rag_inngest_pdf])
