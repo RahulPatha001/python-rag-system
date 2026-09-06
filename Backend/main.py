@@ -43,5 +43,26 @@ async def rag_inngest_pdf(ctx: inngest.Context) -> RAGChunkSrc:
     ingested = await ctx.step.run("embed and upsert", lambda: _upsert(chunks_and_src), output_type=RAGUpsertResult)
     return ingested.model_dump()
 
+@inngest_client.create_function(
+    fn_id="RAG: Query PDF", trigger=inngest.TriggerEvent(event="rag/query_pdf")
+)
+async def rag_query_pdf(ctx: inngest.Context):
+    def _search(question: str, top_k: int = 5) -> RAGSearchResult:
+        query_vector = embed_texts([question])[0]
+        storage = QdrantStorage()
+        found = storage.search(query_vector, limit=top_k)
+        return RAGSearchResult(contexts=found["contexts"], sources=found["sources"])
+
+    question = ctx.event.data["question"]
+    top_k = int(ctx.event.data.get("top_k", 5))
+    search_result = await ctx.step.run("embed and search", lambda: _search(question, top_k), output_type=RAGSearchResult)
+    context_block = "\n\n".join(f"- {c}" for c in search_result.contexts)
+    user_content = (
+        "Use the following context to answer the question.\n\n"
+        f"Context:\n{context_block}\n\n"
+        f"Question: {question}\n"
+        "Answer concisely using the context above."
+    )
+
 
 inngest.fast_api.serve(app, inngest_client, [rag_inngest_pdf])
