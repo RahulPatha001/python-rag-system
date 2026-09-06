@@ -26,11 +26,17 @@ inngest_client = inngest.Inngest(
 )
 async def rag_inngest_pdf(ctx: inngest.Context) -> RAGChunkSrc:
     def _load(ctx: inngest.Context):
-        pass
+        pdf_path = ctx.event.data["pdf_path"]
+        source_id = ctx.event.data.get("source_id", pdf_path)
+        chunks = load_and_chunk_pdf(pdf_path)
+        return RAGChunkSrc(chunks=chunks, source_id=source_id)
+
     def _upsert(chunks_and_src: RAGChunkSrc) -> RAGUpsertResult:
         pass
 
-    chunks_and_src = ctx.step.run("chunk and src", lambda: _load(ctx), output_type=RAGChunkSrc)
+    chunks_and_src = await ctx.step.run("chunk and src", lambda: _load(ctx), output_type=RAGChunkSrc)
+    ingested = await ctx.step.run("embed and upsert", lambda: _upsert(chunks_and_src), output_type=RAGUpsertResult)
+    return ingested.model_dump()
 
 
 inngest.fast_api.serve(app, inngest_client, [rag_inngest_pdf])
