@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("API_KEY"))
+client = OpenAI(api_key=os.getenv("API_KEY"), base_url="https://openrouter.ai/api/v1")
 EMBED_MODEL = "text-embedding-3-large"
 EMBED_DIM = 3072
 
