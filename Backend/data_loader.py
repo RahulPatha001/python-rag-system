@@ -24,6 +24,6 @@ def load_and_chunk_pdf(file_path):
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    response = client.embeddings.create(model=EMBED_MODEL, input=texts, EMBED_MODEL)
+    response = client.embeddings.create(model=EMBED_MODEL, input=texts , encoding_format="float")
     embeddings = [item.embedding for item in response.data]
     return embeddings
