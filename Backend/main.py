@@ -21,12 +21,16 @@ inngest_client = inngest.Inngest(
     serializer=inngest.PydanticSerializer(),
 )
 
-
 @inngest_client.create_function(
     fn_id="RAG_Ingest PDF", trigger=inngest.TriggerEvent(event="rag/inngest_pdf")
 )
-async def rag_inngest_pdf(ctx: inngest.Context):
-    return {"hello": "world"}
+async def rag_inngest_pdf(ctx: inngest.Context) -> RAGChunkSrc:
+    def _load(ctx: inngest.Context):
+        pass
+    def _upsert(chunks_and_src: RAGChunkSrc) -> RAGUpsertResult:
+        pass
+
+    chunks_and_src = ctx.step.run("chunk and src", lambda: _load(ctx), output_type=RAGChunkSrc)
 
 
 inngest.fast_api.serve(app, inngest_client, [rag_inngest_pdf])
