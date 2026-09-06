@@ -6,25 +6,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("API_KEY"))
-EMBED_MODEL = "text-embedding-3-large"
+client = OpenAI(api_key=os.getenv("API_KEY"), base_url="https://openrouter.ai/api/v1")
+EMBED_MODEL = "nvidia/nemotron-3-embed-1b:free"
 EMBED_DIM = 3072
 
 splitter = SentenceSplitter(chunk_size=1000, chunk_overlap=200)
 
-def load_and_chunk_pdf (file_path):
+
+def load_and_chunk_pdf(file_path):
     pdf_reader = PDFReader()
     documents = pdf_reader.load_data(file=file_path)
-    texts = [d.text for d in documents if getattr(d, 'text', None)]
+    texts = [d.text for d in documents if getattr(d, "text", None)]
     chunks = []
     for text in texts:
         chunks.extend(splitter.split_text(text))
     return chunks
 
+
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    response = client.embeddings.create(
-        model=EMBED_MODEL,
-        input=texts
-    )
+    response = client.embeddings.create(model=EMBED_MODEL, input=texts , encoding_format="float")
     embeddings = [item.embedding for item in response.data]
     return embeddings
