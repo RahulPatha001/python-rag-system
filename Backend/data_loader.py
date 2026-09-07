@@ -8,7 +8,7 @@ load_dotenv()
 
 client = OpenAI(api_key=os.getenv("API_KEY"), base_url="https://openrouter.ai/api/v1")
 EMBED_MODEL = "nvidia/nemotron-3-embed-1b:free"
-EMBED_DIM = 3072
+EMBED_DIM = 2048
 
 splitter = SentenceSplitter(chunk_size=1000, chunk_overlap=200)
 
