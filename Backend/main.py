@@ -37,6 +37,8 @@ async def rag_inngest_pdf(ctx: inngest.Context) -> RAGChunkSrc:
         vectors = embed_texts(chunks)
         ids = [str(uuid.uuid5(uuid.NAMESPACE_URL, f"{source_id}_{i}")) for i in range(len(chunks))]
         payloads = [{"text": chunk, "source": source_id} for chunk in chunks]
+        storage = QdrantStorage()
+        storage.upsert(ids=ids, vectors=vectors, payloads=payloads)
         return RAGUpsertResult(ingested=len(chunks))
 
     chunks_and_src = await ctx.step.run("chunk and src", lambda: _load(ctx), output_type=RAGChunkSrc)
@@ -63,6 +65,21 @@ async def rag_query_pdf(ctx: inngest.Context):
         f"Question: {question}\n"
         "Answer concisely using the context above."
     )
+    adapter = ai.openai.Adapter(
+        auth_key=os.environ.get("API_KEY"),
+        base_url="https://openrouter.ai/api/v1",
+        model="minimax/minimax-m3:free"
+    )
+    res = await ctx.step.ai.infer("llm answer", adapter=adapter, body={
+        "max_tokens": 1024,
+        "temperature": 0.2,
+        "messages": [
+            {"role": "system", "content": "You answer questions using only the provided context."},
+            {"role": "user", "content": user_content}
+        ]
+    })
+    answer = res["choices"][0]["message"]["content"].strip()
+    return {"answer": answer, "sources": search_result.sources, "num_contexts": len(search_result.contexts)}
 
 
-inngest.fast_api.serve(app, inngest_client, [rag_inngest_pdf])
+inngest.fast_api.serve(app, inngest_client, [rag_inngest_pdf, rag_query_pdf])
