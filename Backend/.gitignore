@@ -6,6 +6,7 @@ dist/
 wheels/
 *.egg-info
 qdrant_storage
+uploads/
 .env
 # Virtual environments
 .venv

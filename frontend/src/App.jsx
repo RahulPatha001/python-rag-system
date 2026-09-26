@@ -1,121 +1,103 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect } from 'react'
 import './App.css'
+import ChatView from './components/ChatView.jsx'
+import Sidebar from './components/Sidebar.jsx'
+import SourcePanel from './components/SourcePanel.jsx'
+import Toast from './components/Toast.jsx'
+import UploadDialog from './components/UploadDialog.jsx'
+import useRagWorkspace from './hooks/useRagWorkspace.js'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const workspace = useRagWorkspace()
+  const {
+    activeChat,
+    activeChatId,
+    askingChatId,
+    cancelQuestion,
+    isAskingAny,
+    chats,
+    checkConnection,
+    closeSources,
+    connectionStatus,
+    createNewChat,
+    dismissToast,
+    documents,
+    isSidebarOpen,
+    isSourcesOpen,
+    isUploadOpen,
+    openSources,
+    question,
+    retryQuestion,
+    selectedSourceId,
+    sourceViewSources,
+    selectChat,
+    selectSource,
+    setIsSidebarOpen,
+    setIsUploadOpen,
+    setQuestion,
+    submitQuestion,
+    toast,
+    uploadFile,
+  } = workspace
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key !== 'Escape') return
+      if (isUploadOpen) return
+      if (isSourcesOpen) closeSources()
+      else setIsSidebarOpen(false)
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [closeSources, isSourcesOpen, isUploadOpen, setIsSidebarOpen])
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app-shell">
+      <Sidebar
+        chats={chats}
+        documents={documents}
+        activeChatId={activeChatId}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onNewChat={createNewChat}
+        onSelectChat={selectChat}
+        onUpload={() => setIsUploadOpen(true)}
+      />
 
-      <div className="ticks"></div>
+      <ChatView
+        messages={activeChat?.messages || []}
+        question={question}
+        isAsking={askingChatId}
+        isRequestBusy={isAskingAny}
+        connectionStatus={connectionStatus}
+        selectedSourceId={selectedSourceId}
+        onQuestionChange={setQuestion}
+        onSubmit={submitQuestion}
+        onCancel={cancelQuestion}
+        onRetry={retryQuestion}
+        onOpenSidebar={() => setIsSidebarOpen(true)}
+        onOpenSources={openSources}
+        onSelectSource={selectSource}
+        onUpload={() => setIsUploadOpen(true)}
+        onRetryConnection={checkConnection}
+      />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <SourcePanel
+        isOpen={isSourcesOpen}
+        sources={sourceViewSources}
+        selectedSourceId={selectedSourceId}
+        onClose={closeSources}
+        onSelectSource={selectSource}
+      />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <UploadDialog
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        onUpload={uploadFile}
+      />
+
+      <Toast toast={toast} onDismiss={dismissToast} />
+    </div>
   )
 }
 
